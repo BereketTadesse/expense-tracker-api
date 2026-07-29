@@ -1,0 +1,30 @@
+import {Entity,PrimaryGeneratedColumn,Column,CreateDateColumn,UpdateDateColumn,OneToMany} from "typeorm";
+import {Account} from "../../accounts/entities/accounts.entity";
+import{Category} from "../../categories/entities/category.entity";
+import {Transaction} from "../../transactions/entities/transactions.entity";
+import{Budget} from "../../budgets/entities/budget.entity";
+
+@Entity()
+export class User{
+    @PrimaryGeneratedColumn()
+    id:number;
+    @Column({unique:true})
+    email:string;
+    @Column()
+    password:string;
+    @Column()
+    name:string;
+    @CreateDateColumn()
+    createdAt:Date;
+    @UpdateDateColumn()
+    updatedAt:Date;
+    @OneToMany(()=>Account,(account)=>account.user)
+    accounts:Account[];
+    @OneToMany(()=>Category,(category)=>category.user)
+    categories:Category[];
+    @OneToMany(()=>Transaction,(transaction)=>transaction.user)
+    transactions:Transaction[];
+    @OneToMany(()=>Budget,(budget)=>budget.user)
+    budgets:Budget[];
+
+}
