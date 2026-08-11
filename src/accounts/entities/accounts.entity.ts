@@ -4,8 +4,8 @@ import {Transaction} from "../../transactions/entities/transactions.entity";
 
 @Entity()
 export class Account{
-    @PrimaryGeneratedColumn()
-    id:number;
+    @PrimaryGeneratedColumn('uuid')
+    id: string;
     @Column()
     name:string;
     @Column()
