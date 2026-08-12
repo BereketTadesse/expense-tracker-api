@@ -9,7 +9,7 @@ import { User } from '../../users/entities/user.entity';
 import { Category } from 'src/categories/entities/category.entity';
 import { JwtStrategy } from '../../common/strategies/jwt.strategy';
 import { PassportModule } from '@nestjs/passport';
-
+import { MailModule } from 'src/mail/mail.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([User,Category]),
@@ -24,6 +24,7 @@ import { PassportModule } from '@nestjs/passport';
       }),
       inject: [ConfigService],
     }),
+    MailModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy],

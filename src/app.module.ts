@@ -9,14 +9,16 @@ import { CategoriesModule } from './categories/categories.module';
 import { TransactionsModule } from './transactions/transactions.module';
 import { BudgetsModule } from './budgets/budgets.module';
 import { AuthModule } from './auth/auth/auth.module';
+import { MailModule } from './mail/mail.module';
 import databaseConfig from './config/database.config';
 import jwtConfig from './config/jwt.config';
+import mailConfig from './config/mail.config';
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['src/.env', '.env'],
-      load: [databaseConfig,jwtConfig],
+      load: [databaseConfig,jwtConfig,mailConfig],
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -29,6 +31,7 @@ import jwtConfig from './config/jwt.config';
     TransactionsModule,
     BudgetsModule,
     AuthModule,
+    MailModule,
   ],
   controllers: [AppController],
   providers: [AppService],
