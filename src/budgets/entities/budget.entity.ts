@@ -3,13 +3,16 @@ import { User } from "../../users/entities/user.entity";
 import { Category } from '../../categories/entities/category.entity';
 
 @Entity()
-@Unique(['user', 'category', 'month', 'year']) // Prevents duplicate budgets for same month
+@Unique(['user', 'category', 'week','month', 'year']) // Prevents duplicate budgets for same month
 export class Budget {
     @PrimaryGeneratedColumn()
     id: number;
 
     @Column({ type: 'decimal', precision: 12, scale: 2 })
     amountLimit: number;
+
+    @Column({ type: 'int' })
+    week: number; // 1 - 52
 
     @Column({ type: 'int' })
     month: number; // 1 - 12
