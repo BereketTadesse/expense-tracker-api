@@ -1,17 +1,28 @@
-import { IsString, IsEnum, IsNumber, IsOptional, Min, IsEmpty } from "class-validator";
+import { IsString, IsEnum, IsNumber, IsOptional, Min } from 'class-validator';
+import { AccountType } from '../entities/accounts.entity';
+import { Currency } from '../../common/enums/currency.enum';
 
 export class CreateAccountDto {
-    @IsString()
-    name: string;
+  @IsString()
+  name: string;
 
-    @IsString()
-    type: string;
+  @IsEnum(AccountType)
+  type: AccountType;
 
-    @IsNumber()
-    @Min(0)
-    @IsOptional()
-    balance: number;
+  @IsString()
+  @IsOptional()
+  senderHeader?: string;
 
-    @IsString()
-    currency: string;
+  @IsString()
+  @IsOptional()
+  accountMask?: string;
+
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  balance?: number;
+
+  @IsEnum(Currency)
+  @IsOptional()
+  currency?: Currency;
 }
