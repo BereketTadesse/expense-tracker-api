@@ -20,6 +20,9 @@ export class Category {
     @Column({ type: 'enum', enum: CategoryType, default: CategoryType.EXPENSE })
     type: CategoryType;
 
+    @Column({ type: 'boolean', default: false })
+    isDefault: boolean;
+  
     @ManyToOne(() => User, (user) => user.categories, { onDelete: 'CASCADE' })
     user: User;
 
