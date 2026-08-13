@@ -45,7 +45,8 @@ export class WebhookService {
         if (existingAccount && existingAccount.user) {
           targetUser = existingAccount.user;
         } else {
-          targetUser = (await manager.findOne(User, { order: { id: 'ASC' } })) || undefined;
+          const users = await manager.find(User, { order: { id: 'ASC' }, take: 1 });
+          targetUser = users[0] || undefined;
         }
       }
 
