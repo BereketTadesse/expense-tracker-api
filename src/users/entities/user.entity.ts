@@ -4,7 +4,7 @@ import{Category} from "../../categories/entities/category.entity";
 import {Transaction} from "../../transactions/entities/transactions.entity";
 import{Budget} from "../../budgets/entities/budget.entity";
 
-@Entity()
+@Entity('users')
 export class User{
     @PrimaryGeneratedColumn()
     id:number;

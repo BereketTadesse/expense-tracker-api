@@ -2,7 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, Unique } from 'typeo
 import { User } from "../../users/entities/user.entity";
 import { Category } from '../../categories/entities/category.entity';
 
-@Entity()
+@Entity('budgets')
 @Unique(['user', 'category', 'week','month', 'year']) // Prevents duplicate budgets for same month
 export class Budget {
     @PrimaryGeneratedColumn()
