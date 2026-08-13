@@ -14,7 +14,7 @@ export class SmsWebhookController {
   @HttpCode(HttpStatus.OK)
   handleIncomingSms(
     @Body() processSmsDto: ProcessSmsDto,
-    @CurrentUser() user: User,
+    @CurrentUser() user?: User,
   ) {
     return this.webhookService.processIncomingSms(processSmsDto, user);
   }

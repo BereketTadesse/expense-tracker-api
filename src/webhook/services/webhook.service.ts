@@ -14,7 +14,7 @@ export class WebhookService {
     private readonly dataSource: DataSource,
   ) {}
 
-  async processIncomingSms(processSmsDto: ProcessSmsDto, user: User) {
+  async processIncomingSms(processSmsDto: ProcessSmsDto, user?: User) {
     const { sender, message } = processSmsDto;
 
     // 1. Parse SMS
@@ -31,6 +31,28 @@ export class WebhookService {
 
     // 2. Database Transaction (Atomic)
     const result = await this.dataSource.transaction(async (manager) => {
+      // Resolve user if not provided (e.g. via MacroDroid API key)
+      let targetUser = user;
+      if (!targetUser) {
+        const existingAccount = await manager.findOne(Account, {
+          where: [
+            { senderHeader: sender.trim() },
+            accountMask ? { accountMask } : {},
+          ].filter((cond) => Object.keys(cond).length > 0),
+          relations: { user: true },
+        });
+
+        if (existingAccount && existingAccount.user) {
+          targetUser = existingAccount.user;
+        } else {
+          targetUser = (await manager.findOne(User, { order: { id: 'ASC' } })) || undefined;
+        }
+      }
+
+      if (!targetUser) {
+        throw new BadRequestException('No registered user found in the system to assign SMS transaction.');
+      }
+
       // Idempotency check: Duplicate reference ID check
       if (referenceId) {
         const existingTxn = await manager.findOne(Transaction, { where: { referenceId } });
@@ -44,8 +66,8 @@ export class WebhookService {
       // Find or auto-create account
       let account = await manager.findOne(Account, {
         where: [
-          { user: { id: user.id }, senderHeader: sender.trim() },
-          accountMask ? { user: { id: user.id }, accountMask } : {},
+          { user: { id: targetUser.id }, senderHeader: sender.trim() },
+          accountMask ? { user: { id: targetUser.id }, accountMask } : {},
         ].filter((cond) => Object.keys(cond).length > 0),
         lock: { mode: 'pessimistic_write' },
       });
@@ -73,7 +95,7 @@ export class WebhookService {
           accountMask: accountMask || null,
           balance: initialBalance,
           currency: Currency.ETB,
-          user,
+          user: targetUser,
         });
 
         account = await manager.save(createdAccount);
