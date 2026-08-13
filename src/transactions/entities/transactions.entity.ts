@@ -9,16 +9,16 @@ export class Transaction {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   referenceId?: string | null;
 
   @Column({ type: 'decimal', precision: 12, scale: 2 })
   amount: number;
 
-  @Column()
+  @Column({ type: 'varchar' })
   type: string; // e.g. "EXPENSE" or "INCOME"
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   description?: string;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
