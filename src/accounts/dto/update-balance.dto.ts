@@ -1,9 +1,7 @@
 import { IsNumber, IsEnum, IsNotEmpty, Min } from 'class-validator';
+import { TransactionType } from '../../transactions/entities/transactions.entity';
 
-export enum TransactionType {
-  EXPENSE = 'EXPENSE',
-  INCOME = 'INCOME',
-}
+export { TransactionType };
 
 export class UpdateBalanceDto {
   @IsNumber()

@@ -2,11 +2,15 @@ import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn } f
 import { User } from '../../users/entities/user.entity';
 import { Account } from '../../accounts/entities/accounts.entity';
 import { Category } from '../../categories/entities/category.entity';
-
+export enum TransactionType { EXPENSE = 'EXPENSE', INCOME = 'INCOME' }
+  
 @Entity('transactions')
 export class Transaction {
   @PrimaryGeneratedColumn('uuid')
   id: string;
+
+  @Column({ nullable: true })
+  referenceId?: string | null;
 
   @Column({ type: 'decimal', precision: 12, scale: 2 })
   amount: number;

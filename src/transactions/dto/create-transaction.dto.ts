@@ -1,9 +1,7 @@
 import { IsNumber, IsEnum, IsString, IsOptional, IsUUID, IsPositive } from 'class-validator';
+import { TransactionType } from '../entities/transactions.entity';
 
-export enum TransactionType {
-  EXPENSE = 'EXPENSE',
-  INCOME = 'INCOME',
-}
+export { TransactionType };
 
 export class CreateTransactionDto {
   @IsNumber({ maxDecimalPlaces: 2 })

@@ -11,7 +11,7 @@ import {
   VersionColumn 
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
-import { Transaction } from 'src/transactions/entities/transactions.entity';
+import { Transaction } from '../../transactions/entities/transactions.entity';
 import { Currency } from '../../common/enums/currency.enum';
 
 export enum AccountType {
