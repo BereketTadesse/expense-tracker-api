@@ -10,15 +10,17 @@ import { TransactionsModule } from './transactions/transactions.module';
 import { BudgetsModule } from './budgets/budgets.module';
 import { AuthModule } from './auth/auth/auth.module';
 import { MailModule } from './mail/mail.module';
+import { WebhookModule } from './webhook/webhook.module';
 import databaseConfig from './config/database.config';
 import jwtConfig from './config/jwt.config';
 import mailConfig from './config/mail.config';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['src/.env', '.env'],
-      load: [databaseConfig,jwtConfig,mailConfig],
+      load: [databaseConfig, jwtConfig, mailConfig],
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -32,6 +34,7 @@ import mailConfig from './config/mail.config';
     BudgetsModule,
     AuthModule,
     MailModule,
+    WebhookModule,
   ],
   controllers: [AppController],
   providers: [AppService],
