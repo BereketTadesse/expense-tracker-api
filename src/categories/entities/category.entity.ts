@@ -23,8 +23,9 @@ export class Category {
     @Column({ type: 'boolean', default: false })
     isDefault: boolean;
   
-    @ManyToOne(() => User, (user) => user.categories, { onDelete: 'CASCADE' })
-    user: User;
+    @ManyToOne(() => User, (user) => user.categories, { onDelete: 'CASCADE', nullable: true })
+    user?: User | null;
+
 
     @OneToMany(() => Transaction, (transaction) => transaction.category)
     transactions: Transaction[];
