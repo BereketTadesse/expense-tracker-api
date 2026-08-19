@@ -23,7 +23,13 @@ export class WebhookGuard implements CanActivate {
       throw new UnauthorizedException('WEBHOOK_SECRET_KEY is not configured on server');
     }
 
-    // 1. Check Query Parameter fallback (e.g. ?apiKey=... or ?secret=...)
+    // 1. Per-user webhook token (e.g. ?token=<uuid>)
+    //    The actual user lookup happens in the controller — guard just lets it through.
+    if (request.query?.token) {
+      return true;
+    }
+
+    // 2. Check shared query parameter fallback (e.g. ?apiKey=... or ?secret=...)
     const queryKey =
       request.query?.apiKey ||
       request.query?.apikey ||
@@ -34,7 +40,7 @@ export class WebhookGuard implements CanActivate {
       return true;
     }
 
-    // 2. Check API Key Header or Authorization Bearer
+    // 3. Check API Key Header or Authorization Bearer
     const apiKey =
       request.headers['x-api-key'] ||
       request.headers['apikey'] ||
@@ -46,7 +52,7 @@ export class WebhookGuard implements CanActivate {
       return true;
     }
 
-    // 3. Check HMAC-SHA-256 Signature (X-Signature header)
+    // 4. Check HMAC-SHA-256 Signature (X-Signature header)
     const signature = request.headers['x-signature'];
     if (signature && typeof signature === 'string') {
       const rawPayload =
