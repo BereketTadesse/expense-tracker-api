@@ -4,11 +4,13 @@ import { SmsWebhookController } from './sms-webhook.controller';
 import { WebhookService } from './services/webhook.service';
 import { SmsParserService } from './services/sms-parser.service';
 import { ConfigModule } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { User } from '../users/entities/user.entity';
 
 @Module({
-  imports: [ConfigModule],
+  imports: [ConfigModule, TypeOrmModule.forFeature([User])],
   controllers: [SmsWebhookController],
-  providers: [WebhookService, SmsParserService], // 👈 Both services registered as providers
+  providers: [WebhookService, SmsParserService],
   exports: [WebhookService],
 })
-export class WebhookModule {}
+export class WebhookModule {}

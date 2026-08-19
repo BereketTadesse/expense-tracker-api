@@ -26,6 +26,8 @@ describe('WebhookService', () => {
     name: 'Bereket Tadesse',
     resetPasswordToken: null,
     resetPasswordExpires: null,
+    webhookToken: 'mock-webhook-token-uuid',
+    generateWebhookToken: jest.fn(),
     createdAt: new Date(),
     updatedAt: new Date(),
     accounts: [],

@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, HttpCode, HttpStatus, Query, UnauthorizedException } from '@nestjs/common';
 import { ProcessSmsDto } from './dto/process-sms.dto';
 import { WebhookService } from './services/webhook.service';
 import { WebhookGuard } from '../common/guards/webhook.guard';
@@ -12,10 +12,22 @@ export class SmsWebhookController {
 
   @Post()
   @HttpCode(HttpStatus.OK)
-  handleIncomingSms(
+  async handleIncomingSms(
     @Body() processSmsDto: ProcessSmsDto,
-    @CurrentUser() user?: User,
+    @Query('token') token?: string,
+    @CurrentUser() jwtUser?: User,
   ) {
+    let user = jwtUser;
+
+    // Resolve user from personal webhook token if provided
+    if (!user && token) {
+      const resolved = await this.webhookService.resolveUserFromToken(token);
+      if (!resolved) {
+        throw new UnauthorizedException('Invalid webhook token. Please check your SMS Forwarder URL.');
+      }
+      user = resolved;
+    }
+
     return this.webhookService.processIncomingSms(processSmsDto, user);
   }
 
@@ -24,4 +36,5 @@ export class SmsWebhookController {
   handleHeartbeat(@Body() payload: Record<string, any>) {
     return this.webhookService.processHeartbeat(payload);
   }
-}
+}
+

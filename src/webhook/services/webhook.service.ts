@@ -1,5 +1,6 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
-import { DataSource } from 'typeorm';
+import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { DataSource, Repository } from 'typeorm';
 import {
   ProcessSmsDto,
   extractSmsSender,
@@ -17,6 +18,8 @@ export class WebhookService {
   constructor(
     private readonly smsParserService: SmsParserService,
     private readonly dataSource: DataSource,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
   ) {}
 
   async processIncomingSms(processSmsDto: ProcessSmsDto, user?: User) {
@@ -173,4 +176,14 @@ export class WebhookService {
       details: payload || {},
     };
   }
-}
+
+  /**
+   * Resolves a User by their personal webhookToken.
+   * Called from the controller when ?token=... is present in the request.
+   */
+  async resolveUserFromToken(token: string): Promise<User | null> {
+    if (!token) return null;
+    return this.userRepository.findOne({ where: { webhookToken: token } });
+  }
+}
+

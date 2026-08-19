@@ -10,7 +10,11 @@ export default registerAs('database', () => ({
   password: process.env.DB_PASSWORD || process.env.password || '',
   database: process.env.DB_NAME || process.env.database || 'expense_tracker',
   autoLoadEntities: true,
-  synchronize: process.env.DB_SYNCHRONIZE === 'true' || process.env.NODE_ENV !== 'production',
+  synchronize:
+    process.env.DB_SYNCHRONIZE !== undefined
+      ? process.env.DB_SYNCHRONIZE === 'true'
+      : process.env.NODE_ENV !== 'production',
+
   ssl:
     process.env.DB_SSL === 'true' || process.env.DATABASE_URL
       ? { rejectUnauthorized: false }

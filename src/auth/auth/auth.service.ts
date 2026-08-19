@@ -6,6 +6,7 @@ import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
+import { v4 as uuidv4 } from 'uuid';
 import {RegisterDto} from './dto/register.dto';
 import {LoginDto} from './dto/login.dto';
 import {ResetPasswordDto} from './dto/reset-password.dto';
@@ -69,6 +70,36 @@ async getProfile(user: User) {
       updatedAt: true,
     },
   });
+}
+
+async getWebhookToken(user: User) {
+  const found = await this.userRepository.findOne({ where: { id: user.id } });
+  if (!found) throw new NotFoundException('User not found');
+
+  // Auto-generate token if user was created before this feature was added
+  if (!found.webhookToken) {
+    found.webhookToken = uuidv4();
+    await this.userRepository.save(found);
+  }
+
+  const webhookUrl = `YOUR_API_BASE_URL/api/webhook/sms?token=${found.webhookToken}`;
+  return {
+    webhookToken: found.webhookToken,
+    webhookUrl,
+    instructions: 'Copy the webhookUrl above and paste it into the Incoming SMS App URL field on your phone.',
+  };
+}
+
+async regenerateWebhookToken(user: User) {
+  const found = await this.userRepository.findOne({ where: { id: user.id } });
+  if (!found) throw new NotFoundException('User not found');
+  found.webhookToken = uuidv4();
+  await this.userRepository.save(found);
+  return {
+    message: 'Webhook token regenerated successfully. Update your SMS Forwarder app URL.',
+    webhookToken: found.webhookToken,
+    webhookUrl: `YOUR_API_BASE_URL/api/webhook/sms?token=${found.webhookToken}`,
+  };
 }
 
 async forgetpassword(forgotPasswordDto:ForgotPasswordDto){
