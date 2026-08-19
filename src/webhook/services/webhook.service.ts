@@ -1,6 +1,11 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { DataSource } from 'typeorm';
-import { ProcessSmsDto } from '../dto/process-sms.dto';
+import {
+  ProcessSmsDto,
+  extractSmsSender,
+  extractSmsMessage,
+  extractSmsTimestamp,
+} from '../dto/process-sms.dto';
 import { SmsParserService } from '../services/sms-parser.service';
 import { Account, AccountType } from '../../accounts/entities/accounts.entity';
 import { Transaction } from '../../transactions/entities/transactions.entity';
@@ -15,7 +20,22 @@ export class WebhookService {
   ) {}
 
   async processIncomingSms(processSmsDto: ProcessSmsDto, user?: User) {
-    const { sender, message } = processSmsDto;
+    const sender = extractSmsSender(processSmsDto);
+    const message = extractSmsMessage(processSmsDto);
+    const txnDate = extractSmsTimestamp(processSmsDto);
+
+    // Check for Android SMS Gateway default Test Ping button
+    if (message.toLowerCase() === 'test' || sender === '1234567890') {
+      return {
+        success: true,
+        message: 'Test ping received successfully from SMS Gateway.',
+        data: {
+          isTest: true,
+          sender,
+          message,
+        },
+      };
+    }
 
     // 1. Parse SMS
     const parsedData = this.smsParserService.parseSms(sender, message);
@@ -31,7 +51,7 @@ export class WebhookService {
 
     // 2. Database Transaction (Atomic)
     const result = await this.dataSource.transaction(async (manager) => {
-      // Resolve user if not provided (e.g. via MacroDroid API key)
+      // Resolve user if not provided (e.g. via SMS Gateway API key / signature)
       let targetUser = user;
       if (!targetUser) {
         const existingAccount = await manager.findOne(Account, {
@@ -118,9 +138,9 @@ export class WebhookService {
         type,
         description: description || `Automated SMS from ${bankName}`,
         referenceId: referenceId || null,
-        date: new Date(),
+        date: txnDate,
         account,
-        user,
+        user: targetUser,
       });
 
       const savedTransaction = await manager.save(newTransaction);
@@ -144,4 +164,13 @@ export class WebhookService {
       },
     };
   }
-}
+
+  async processHeartbeat(payload?: Record<string, any>) {
+    return {
+      success: true,
+      message: 'Heartbeat ping received successfully.',
+      timestamp: new Date().toISOString(),
+      details: payload || {},
+    };
+  }
+}

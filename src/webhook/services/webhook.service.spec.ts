@@ -245,4 +245,77 @@ describe('WebhookService', () => {
       expect(result.data?.currentBalance).toBe(800);
     });
   });
+
+  // -------------------------------------------------------------------------
+  // TEST CASE 5: Android SMS Gateway Payload (from, text, sentStamp)
+  // -------------------------------------------------------------------------
+  describe('processIncomingSms - Android SMS Gateway Payload', () => {
+    it('should correctly process Android SMS app payload using from, text, and sentStamp', async () => {
+      const dto = new ProcessSmsDto();
+      dto.from = 'CBE';
+      dto.text = 'Dear Customer your Account 1********3866 has been debited with ETB 500.00. Balance is ETB 28,000.00.';
+      dto.sentStamp = 1723465200000;
+      dto.sim = 'SIM 1';
+
+      const parsedData: ParsedSmsResult = {
+        amount: 500,
+        type: 'EXPENSE',
+        description: 'CBE Transaction (...3866)',
+        accountMask: '3866',
+        extractedBalance: 28000,
+        bankName: 'CBE',
+      };
+
+      smsParserService.parseSms.mockReturnValue(parsedData);
+      mockEntityManager.findOne.mockResolvedValueOnce(null); // No duplicate ref
+      mockEntityManager.findOne.mockResolvedValueOnce(null); // No existing account
+
+      const mockNewAccount = {
+        id: 'new-account-uuid',
+        name: 'CBE (...3866)',
+        balance: 28000,
+      } as Account;
+
+      const mockNewTxn = {
+        id: 'new-txn-uuid',
+        amount: 500,
+        date: new Date(1723465200000),
+      } as Transaction;
+
+      mockEntityManager.create.mockReturnValueOnce(mockNewAccount);
+      mockEntityManager.save.mockResolvedValueOnce(mockNewAccount);
+      mockEntityManager.create.mockReturnValueOnce(mockNewTxn);
+      mockEntityManager.save.mockResolvedValueOnce(mockNewTxn);
+
+      const result = await service.processIncomingSms(dto, mockUser);
+
+      expect(smsParserService.parseSms).toHaveBeenCalledWith('CBE', dto.text);
+      expect(result.success).toBe(true);
+      expect(result.data?.amount).toBe(500);
+    });
+
+    it('should handle Test ping gracefully without throwing or database write', async () => {
+      const dto = new ProcessSmsDto();
+      dto.from = '1234567890';
+      dto.text = 'Test';
+
+      const result = await service.processIncomingSms(dto, mockUser);
+
+      expect(result.success).toBe(true);
+      expect(result.data?.isTest).toBe(true);
+      expect(dataSource.transaction).not.toHaveBeenCalled();
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // TEST CASE 6: Heartbeat handling
+  // -------------------------------------------------------------------------
+  describe('processHeartbeat', () => {
+    it('should return success for heartbeat pings', async () => {
+      const result = await service.processHeartbeat({ battery: 85, network: 'wifi' });
+      expect(result.success).toBe(true);
+      expect(result.details).toEqual({ battery: 85, network: 'wifi' });
+    });
+  });
 });
+
