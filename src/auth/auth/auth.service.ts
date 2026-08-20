@@ -59,6 +59,10 @@ async login(loginDto:LoginDto){
     return {message:"User logged in successfully",user:user,token:token}
 }
 
+async logout() {
+  return { message: 'User logged out successfully' };
+}
+
 async getProfile(user: User) {
   return this.userRepository.findOne({
     where: { id: user.id },

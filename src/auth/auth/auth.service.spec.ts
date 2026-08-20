@@ -121,6 +121,13 @@ describe('AuthService', () => {
     });
   });
 
+  describe('logout', () => {
+    it('should return success message on logout', async () => {
+      const result = await service.logout();
+      expect(result).toEqual({ message: 'User logged out successfully' });
+    });
+  });
+
   describe('forgetpassword', () => {
     it('should throw NotFoundException if user email does not exist', async () => {
       userRepository.findOne.mockResolvedValue(null);

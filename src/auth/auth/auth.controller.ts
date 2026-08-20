@@ -22,6 +22,12 @@ export class AuthController {
         return this.authService.login(loginDto);
     }
 
+    @Post('logout')
+    @UseGuards(AuthGuard('jwt'))
+    async logout() {
+        return this.authService.logout();
+    }
+
     @Post('forgot-password')
     async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
         return this.authService.forgetpassword(forgotPasswordDto);
