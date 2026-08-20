@@ -13,6 +13,12 @@ export default registerAs('database', () => ({
   // SAFE DEFAULT: only synchronize if explicitly set to 'true' in env
   // Never default to true — it destroys existing data on Supabase
   synchronize: process.env.DB_SYNCHRONIZE === 'true',
+  // Force search_path=public on every connection to fix Supabase pgbouncer issue
+  // where the pooler does not set search_path automatically, causing
+  // 'relation "user" does not exist' errors on unqualified table names.
+  extra: {
+    options: '-c search_path=public',
+  },
 
   ssl:
     process.env.DB_SSL === 'true' || process.env.DATABASE_URL
