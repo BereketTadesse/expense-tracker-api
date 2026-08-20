@@ -11,10 +11,9 @@ export default registerAs('database', () => ({
   database: process.env.DB_NAME || process.env.database || 'expense_tracker',
   schema: 'public', // Explicit schema for Supabase compatibility
   autoLoadEntities: true,
-  synchronize:
-    process.env.DB_SYNCHRONIZE !== undefined
-      ? process.env.DB_SYNCHRONIZE === 'true'
-      : process.env.NODE_ENV !== 'production',
+  // SAFE DEFAULT: only synchronize if explicitly set to 'true' in env
+  // Never default to true — it destroys existing data on Supabase
+  synchronize: process.env.DB_SYNCHRONIZE === 'true',
 
   ssl:
     process.env.DB_SSL === 'true' || process.env.DATABASE_URL
