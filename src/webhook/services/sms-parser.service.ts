@@ -120,6 +120,42 @@ export class SmsParserService {
       }
     }
 
+    // 🏦 4. Dashen Bank
+    // Debit:  "Dear Customer, your account '5032**011' is debited with ETB 500.00 on 19/08/2026 at 07:35:53 PM. Your current balance is ETB 2,084.74. Dashen Bank - Always one step ahead!"
+    // Credit: "Dear Customer, your account '5032**011' is credited with ETB 500.00 on 19/08/2026. Your current balance is ETB 2,584.74. Dashen Bank..."
+    if (cleanSender.includes('DASHEN') || cleanSender.includes('DBE')) {
+      const isDebit  = /debited/i.test(cleanMessage);
+      const isCredit = /credited/i.test(cleanMessage);
+
+      // Match the transaction amount (first ETB after debited/credited)
+      const amountMatch = cleanMessage.match(/(?:debited|credited)\s+with\s+ETB\s*([\d,]+\.?\d*)/i);
+
+      // Match account mask e.g. '5032**011'
+      const maskMatch = cleanMessage.match(/account\s+'?([\d*]+)'?/i);
+
+      // Match current balance
+      const balanceMatch = cleanMessage.match(/current balance is ETB\s*([\d,]+\.?\d*)/i);
+
+      // Match reference/transaction number if present
+      const refMatch = cleanMessage.match(/(?:Ref|Txn|Transaction)(?:\s*No\.?|:)?\s*([A-Z0-9]+)/i);
+
+      if (amountMatch) {
+        const amount = this.cleanAmount(amountMatch[1]);
+        const extractedBalance = balanceMatch ? this.cleanAmount(balanceMatch[1]) : undefined;
+        const mask = maskMatch ? maskMatch[1].replace(/\*/g, '').slice(-4) : undefined;
+
+        return {
+          amount,
+          type: isDebit ? 'EXPENSE' : isCredit ? 'INCOME' : 'EXPENSE',
+          description: `Dashen Bank ${isDebit ? 'debit' : 'credit'} ${mask ? `(...${mask})` : ''}`,
+          referenceId: refMatch ? refMatch[1] : undefined,
+          accountMask: maskMatch ? maskMatch[1] : mask,
+          extractedBalance,
+          bankName: 'Dashen Bank',
+        };
+      }
+    }
+
     this.logger.warn(`Unrecognized SMS format from sender '${sender}': "${message}"`);
     return null;
   }
