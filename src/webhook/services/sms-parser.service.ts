@@ -48,15 +48,33 @@ export class SmsParserService {
     }
 
     // 📱 2. Telebirr (Ethio Telecom)
-    // Pattern: "You have transferred ETB 250.00 to Kaldi's Coffee. Receipt No. AJM22EAGFK. Your new balance is ETB 1,200.00."
+    // Real SMS formats:
+    // Transfer: "You have transferred ETB 1.00 to abenezer shimelis (2519****3345) on 20/08/2026.
+    //            Your transaction number is DHK50GG8MN. The service fee is ETB 0.87 ...
+    //            Your current E-Money Account balance is ETB 256.50."
+    // Receive:  "You have received ETB 500.00 from ... Your current E-Money Account balance is ETB 800.00."
     if (cleanSender.includes('127') || cleanSender.includes('TELEBIRR')) {
       const isExpense = /transferred|paid/i.test(cleanMessage);
       const isIncome = /received/i.test(cleanMessage);
 
-      const amountMatch = cleanMessage.match(/ETB\s*([\d,]+\.?\d*)/i);
-      const refMatch = cleanMessage.match(/Receipt No\.?\s*([A-Z0-9]+)/i);
-      const balanceMatch = cleanMessage.match(/new balance is ETB\s*([\d,]+\.?\d*)/i);
-      const recipientMatch = cleanMessage.match(/to\s+([^.]+)\./i);
+      // Match the first ETB amount (the actual transfer amount, before any fee mentions)
+      const amountMatch = cleanMessage.match(/(?:transferred|paid|received)\s+ETB\s*([\d,]+\.?\d*)/i);
+
+      // Match transaction/receipt number (supports both formats)
+      const refMatch =
+        cleanMessage.match(/transaction number is\s+([A-Z0-9]+)/i) ||
+        cleanMessage.match(/Receipt No\.?\s*([A-Z0-9]+)/i) ||
+        cleanMessage.match(/Ref(?:erence)?(?:\s*No\.?)?\s*[:#]?\s*([A-Z0-9]+)/i);
+
+      // Match current balance (supports multiple telebirr balance phrasings)
+      const balanceMatch =
+        cleanMessage.match(/E-Money Account\s+balance is ETB\s*([\d,]+\.?\d*)/i) ||
+        cleanMessage.match(/new balance is ETB\s*([\d,]+\.?\d*)/i) ||
+        cleanMessage.match(/current balance is ETB\s*([\d,]+\.?\d*)/i) ||
+        cleanMessage.match(/balance[:\s]+ETB\s*([\d,]+\.?\d*)/i);
+
+      // Match recipient name
+      const recipientMatch = cleanMessage.match(/(?:transferred|paid)\s+ETB[\d,.\s]+to\s+([^(]+?)(?:\s*\(|\s+on\b)/i);
 
       if (amountMatch) {
         const amount = this.cleanAmount(amountMatch[1]);
@@ -66,7 +84,7 @@ export class SmsParserService {
         return {
           amount,
           type: isExpense ? 'EXPENSE' : isIncome ? 'INCOME' : 'EXPENSE',
-          description: recipient,
+          description: isExpense ? `Telebirr transfer to ${recipient}` : `Telebirr received from ${recipient}`,
           referenceId: refMatch ? refMatch[1] : undefined,
           accountMask: 'telebirr',
           extractedBalance,
@@ -74,6 +92,7 @@ export class SmsParserService {
         };
       }
     }
+
 
     // 🏛️ 3. Bank of Abyssinia (BOA)
     // Pattern: "Dear customer, your account 12****89 has been debited with ETB 1,200.00. Ref: BOA9912. Balance: ETB 14,000.00"
