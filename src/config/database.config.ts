@@ -9,7 +9,6 @@ export default registerAs('database', () => ({
   username: process.env.DB_USERNAME || process.env.user || 'postgres',
   password: process.env.DB_PASSWORD || process.env.password || '',
   database: process.env.DB_NAME || process.env.database || 'expense_tracker',
-  schema: 'public', // Explicit schema for Supabase compatibility
   autoLoadEntities: true,
   // SAFE DEFAULT: only synchronize if explicitly set to 'true' in env
   // Never default to true — it destroys existing data on Supabase
