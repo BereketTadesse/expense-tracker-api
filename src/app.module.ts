@@ -24,11 +24,7 @@ import mailConfig from './config/mail.config';
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
-        ...configService.get('database')!,
-        migrations: [__dirname + '/migrations/*{.ts,.js}'],
-        migrationsRun: true, // Auto-run pending migrations on startup
-      }),
+      useFactory: (configService: ConfigService) => configService.get('database')!,
       inject: [ConfigService],
     }),
     UsersModule,
